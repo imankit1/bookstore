@@ -1,40 +1,71 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from "react-hook-form"
+import axios from "axios";
+import toast from 'react-hot-toast';
 
 function Login() {
     const {
         register,
         handleSubmit,
         formState: { errors },
-      } = useForm();
+    } = useForm();
 
-      const onSubmit = (data) => console.log(data)
-    return (
-        <>
-            <div>
-                <dialog id="my_modal_3" className="modal">
-                    <div className="modal-box">
-                        <form onSubmit={handleSubmit(onSubmit)} method="dialog">
-                            {/* if there is a button in form, it will close the modal */}
-                            <Link to="/" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={()=> document.getElementById("my_modal_3").close()}>
+    const onSubmit = async (data) => {
+        const userInfo = {
+            email: data.email,
+            password: data.password,
+        };
+        await axios.post("http://localhost:5001/user/login", userInfo)
+            .then((res) => {
+                console.log(res.data);
+                if (res.data) {
+                    // alert("Login ho gya");
+                    toast.success('Login ho gya!');
+                    document.getElementById("my_modal_3").close();
+                    setTimeout(() => {
+
+                        window.location.reload();
+                    localStorage.setItem("Users", JSON.stringify(res.data.user));
+                }, 1000);
+
+    }
+})
+    .catch ((err) => {
+        if (err.response) {
+            console.log(err);
+            toast.error("Error: " + err.response.data.message);
+            setTimeout(() => {}, 2000);
+
+
+        }
+    });
+}
+return (
+    <>
+        <div>
+            <dialog id="my_modal_3" className="modal">
+                <div className="modal-box">
+                    <form onSubmit={handleSubmit(onSubmit)} method="dialog">
+                        {/* if there is a button in form, it will close the modal */}
+                        <Link to="/" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={() => document.getElementById("my_modal_3").close()}>
                             ✕</Link>
-                        
+
                         <h3 className="font-bold text-lg">Login </h3>
 
                         {/* email */}
                         <div className='mt-4 space-y-2'>
                             <span>Email</span><br />
                             <input type='email' placeholder='Enter your email'
-                                className='w-80 px-3 py-1 border rounded-md outline-none' 
-                                {...register("email", { required: true })}/><br/>
-                                {errors.email && <span className='text-sm text-red-500'>This field is required</span>}
+                                className='w-80 px-3 py-1 border rounded-md outline-none'
+                                {...register("email", { required: true })} /><br />
+                            {errors.email && <span className='text-sm text-red-500'>This field is required</span>}
                         </div>
                         {/* password */}
                         <div className='py-10'>
                             <span>Password</span><br />
                             <input type='password' placeholder='Enter your password' className='w-80 px-3 py-1 border rounded-md outline-none'
-                            {...register("password", { required: true })} /><br/>
+                                {...register("password", { required: true })} /><br />
                             {errors.password && <span className='text-sm text-red-500'>This field is required</span>}
                         </div>
 
@@ -49,12 +80,12 @@ function Login() {
 
                         </div>
                     </form>
-                    </div>
-                </dialog>
-            </div>
-        </>
+                </div>
+            </dialog>
+        </div>
+    </>
 
-    )
+)
 }
 
 export default Login
